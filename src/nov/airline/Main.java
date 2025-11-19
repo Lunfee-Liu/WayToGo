@@ -14,16 +14,24 @@ public class Main {
         airlineRoutes.add("AMS-LGG");
         airlineRoutes.add("PVG-AMS");
         airlineRoutes.add("PVG-MST");
+        airlineRoutes.add("PVG-HKG");
+        airlineRoutes.add("MST-AMS");
 
         AirlineRouteMap routeMap = new AirlineRouteMap();
         routeMap.createMap(airlineRoutes);
         Port start = routeMap.getOrThrow("PVG");
-        Port dest = routeMap.getOrThrow("HKG");
+        Port dest = routeMap.getOrThrow("FRA");
 
         RouteReachStrategy routeReachChecker = new BFSRouteReachChecker();
         System.out.println(routeReachChecker.canReach(start, dest.getPortCode()));
 
         VisitStrategy dfsVisitor = new BFSVisitor();
         dfsVisitor.visit(start, port -> System.out.println(port.getPortCode()));
+
+        DFSPathSearcher pathSearcher = new DFSPathSearcher();
+        List<List<String>> paths = pathSearcher.search(start, dest.getPortCode());
+        for (List<String> path : paths) {
+            System.out.println(String.join("-", path));
+        }
     }
 }

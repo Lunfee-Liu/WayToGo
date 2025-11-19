@@ -13,6 +13,7 @@ public class DFSVisitor implements VisitStrategy{
 
     private void dfsVisit(Port cur, HashSet<String> visited, Consumer<Port> action) {
         action.accept(cur);
+        // 这句看起来可以优化
         visited.add(cur.getPortCode());
         for (Port canArrivePort : cur.getCanArrivePorts()) {
             if (visited.add(canArrivePort.getPortCode())) {

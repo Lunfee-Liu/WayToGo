@@ -2,6 +2,8 @@ package nov.airline.strategy;
 
 import nov.airline.Port;
 
+import java.util.List;
+
 public interface PathStrategy {
-    void visit(Port start, String target);
+    List<List<String>> search(Port start, String target);
 }
