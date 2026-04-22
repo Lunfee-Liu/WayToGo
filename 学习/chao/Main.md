@@ -651,31 +651,81 @@ public class Foo {
 
 ##### 死锁条件
 
-1. 互斥条件：资源只能被一个线程占用，比如Java的互斥锁，Mysql的行级锁）
-2. 请求与保持：线程已经持有部分资源，同时还在请求新的资源
+简单说：线程A持有互斥资源1，等待资源2，线程B持有资源2，等待线程A释放资源1，形成了一个闭环等待的阻塞链。
+
+1. 互斥条件：资源只能被一个线程占用，（比如Java的互斥锁，Mysql的行级锁）
+2. 请求与保持：线程已经持有了一个资源，同时还在请求另外一个资源
 3. 不可剥夺：线程已经持有的资源只能由自己释放，不能被剥夺
-4. 循环等待：多个线程形成闭环等待链
+4. 循环等待：多个线程形成环形的等待链
 
 ##### 死锁如何破解？
 
 1. 不可避免
-2. 可以一次性申请多个资源，独占
-3. **主动释放**，拿不到就释放掉，比如trylock + 超时时间
-4. **按顺序获取资源**，避免循环等待
+2. 尽量不要有先获得两个锁的动作
+3. 补救：**等待资源时可以主动超时释放**，拿不到就释放掉，比如trylock + 超时时间
+4. 重点：**按顺序获取资源**，避免循环等待
 
 
 
 ##### 死锁排查
 
+**Java层面的话可以：**
 
+1. top 指令看下当前当前可能异常的进程 或者 ps指令查当前进程的PID
+
+   > top指令是实时查看进程的心跳（进程的cpu使用率和内存占用率，系统的负载（正在运行 + 正在等待 CPU 的进程数量））
+   >
+   > ps指令查所有进程列表
+
+2. jstack指令查看当前进程所有线程的执行快照，看下有没有已知的死锁（deedlock字眼），没有的话，可以重点看下哪些线程是被BLOCK的，代码当前在执行哪一行，有没有循环阻塞，持有那个锁在等待哪个锁
+
+
+
+**mysql死锁排查：**
+
+mysql有的设计本身就可能会形成死锁，被检测出来mysql会回滚一个事务解除死锁
+
+比如：
+
+a.更新顺序不一致:
+
+```
+T1: update A -> update B
+T2: update B -> update A
+```
+
+b.范围查询 + gap lock
+
+```
+select * from user where id > 10 for update;
+```
+
+解决方案
+
+> 按固定顺序访问资源（最重要）
+> 减小事务粒度（缩短持锁时间）
+> 尽量直接命中索引（避免锁扩大）
+
+
+
+如何查看
+SHOW ENGINE INNODB STATUS
 
 
 
 #### 并发与并行
 
-> 从 CPU 调度的角度讲：并发指的是多个线程在同一个 CPU 内核上执行，CPU 为每个线程分配时间片轮流执行；并行则是不同的线程在不同的 CPU 内核上同时执行；
+简单来说：并发表示多个任务同时在执行，互不干扰；并发的话一般指的是CPU内核可能会在不同的任务之间切换时间片。
+
+> 从 CPU 调度的角度讲：并发指的是多个线程在同一个 CPU 内核上执行，CPU 为每个线程分配时间片轮流执行；
 >
-> 从程序或者接口的角度讲：并发指的是，某一时刻，多个用户同时访问某段程序，
+> 并行则是不同的线程在不同的 CPU 内核上同时执行；
+>
+> 从程序或者接口的角度讲：并发指的是，某一时刻，多个用户同时访问某段程序
+>
+> 在垃圾回收场景：并发指的是垃圾回收线程和用户线程在同时进行，并行指的是多个线程在同时进行回收工作
+
+
 
 #### 为什么创建线程是expensive
 
@@ -683,11 +733,15 @@ public class Foo {
 
 JVM会为线程创建一个较大的栈空间，并初始化
 
+
+
 #### Thread start 方法
 
 1. **直接调用 Runnable 的方法**不可以以开启线程的方式执行，因为 Java 线程和操作系统线程一一对应，必须执行本地方法 start0() 完成线程创建。
 
 2. **不能反复或者在线程结束调用 start 方法**，因为在执行的时候会检查 threadState 是为0(NEW)，否则会抛出非法的线程状态异常。
+
+
 
 #### **线程状态与转换**
 
@@ -695,11 +749,17 @@ JVM会为线程创建一个较大的栈空间，并初始化
 
 #### 同步与互斥
 
-> 同步是多线程情况下，不同线程之间按照一定的顺序执行，保证运行结果的正确性
+> 同步是多线程情况下，不同线程之间按照一定的顺序执行。目的是保证运行结果的正确性
+>
+> 互斥是一个集合的概念，表示一个资源被线程A获取了就不能被B获取，是实现同步的一种方式
 
 ![同步.drawio](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/%E5%90%8C%E6%AD%A5.drawio.png) 
 
+
+
 #### wait() 和 sleep() 区别
+
+
 
 [stackoverflow]()
 
@@ -715,6 +775,8 @@ JVM会为线程创建一个较大的栈空间，并初始化
 >
 > *4.**使用***：使用 wait() 完成线程间同步功能，sleep() 在测试的时候使用延迟固定时间
 
+
+
 ##### 补充：[中断](https://www.geeksforgeeks.org/interrupting-a-thread-in-java/)
 
 > In Java Threads, if any thread is in sleeping or waiting state (i.e. sleep() or wait() is invoked), calling the interrupt() method on the thread, **breaks out the sleeping or waiting state throwing InterruptedException**. If the thread is not in the sleeping or waiting state, calling the interrupt() method **performs normal behavior and doesn’t interrupt the thread but sets the interrupt flag to true**. 
@@ -724,6 +786,8 @@ JVM会为线程创建一个较大的栈空间，并初始化
 告诉操作系统，可以放弃当前线程的时间片，操作系统不一定会真的不执行，放弃不过是希望其它线程由机会使用 CPU 资源
 
 在实际开发中一般不使用，在测试环境下可能会使用
+
+
 
 ##### 补充：在生产环境中，不使用 sleep() 的原因
 
@@ -735,6 +799,8 @@ JVM会为线程创建一个较大的栈空间，并初始化
 >
 > 不要用 sleep() 做精确定时任务
 
+
+
 ##### 实战（记录一次code review）
 
 [来源](http://www.qat.com/using-waitnotify-instead-thread-sleep-java/)
@@ -744,6 +810,20 @@ JVM会为线程创建一个较大的栈空间，并初始化
 > 这个同学要实现的是一个图片处理和上传功能，为了实现异步，开启一个线程完成图片处理的功能，主线程完成其它操作后，等待处理结束，完成上传。
 >
 > 他的做法是在主线程使用一个 while 循环不断的进行 boolean check，没完成处理的情况下就 sleep，这明显是线程同步的一个误用，等待时间短会频繁的进行 boolean check，时间长可能造成响应变慢。应当使用等待通知机制。
+
+
+
+#### [锁](https://tech.meituan.com/2018/11/15/java-lock.html)
+
+> Java 的锁，本质上是一个**并发控制机制**：用来保证多个线程访问共享资源时的**原子性、可见性、有序性**。
+>
+> 如果只用一句话概括：
+>
+> 锁就是一种“让线程排队访问临界资源”的机制。
+
+
+
+##### synchronized
 
 
 
@@ -814,6 +894,12 @@ CAS 调用的是本地方法，例如 Intel 通过处理器指令 CMPXCHG 在硬
 #### [协程](https://stackoverflow.com/questions/1934715/difference-between-a-coroutine-and-a-thread)
 
 用户态线程，不发生系统调用，内核不可见
+
+
+
+
+
+
 
 ### JVM
 
