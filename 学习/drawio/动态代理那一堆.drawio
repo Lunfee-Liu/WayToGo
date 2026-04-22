@@ -1,0 +1,98 @@
+<mxfile host="app.diagrams.net" modified="2022-04-18T05:34:37.718Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36" etag="L_j1vdjRc6VEoYQwq60b" version="17.4.5" type="github">
+  <diagram id="3OoDObGrAf9emxHSX0HN" name="Page-1">
+    <mxGraphModel dx="981" dy="548" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-1" value="多态&lt;br&gt;（方法）" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillWeight=4;hachureGap=8;hachureAngle=45;fillColor=#f8cecc;sketch=1;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="90" y="135" width="60" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-4" value="动态代理&lt;br&gt;（代理模式）" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillWeight=4;hachureGap=8;hachureAngle=45;fillColor=#f8cecc;sketch=1;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="90" y="720" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-5" value="反射" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillWeight=4;hachureGap=8;hachureAngle=45;fillColor=#f8cecc;sketch=1;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="481" y="680" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="gpJ_NSvQPWh_NgJkB7wr-8" target="gpJ_NSvQPWh_NgJkB7wr-9" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-8" value="What" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillWeight=4;hachureGap=8;hachureAngle=45;fillColor=#dae8fc;sketch=1;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="90" y="20" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="gpJ_NSvQPWh_NgJkB7wr-9" target="gpJ_NSvQPWh_NgJkB7wr-10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-9" value="Why" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillWeight=4;hachureGap=8;hachureAngle=45;fillColor=#dae8fc;sketch=1;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="200" y="20" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-10" value="How" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillWeight=4;hachureGap=8;hachureAngle=45;fillColor=#dae8fc;sketch=1;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="320" y="20" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-13" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="160" y="90" width="20" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-15" value="定义：一个对象有着多重特征，可以在特定的情况下，表现不同的状态，从而对应着不同的属性和方法。" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="180" y="80" width="570" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-16" value="实现：动态绑定（dynamic binding），在执行期间判断所引用对象的实际类型，根据其实际的类型调用其相应的方法。" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="181" y="145" width="640" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-17" value="目的：降低耦合；提高扩展性" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="181" y="101" width="170" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-18" value="过程：invokevirtual" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="178" y="190" width="120" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-19" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="295" y="167.5" width="20" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-21" value="前提：向上转型，方法重写，父类引用子类的对象" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="179" y="123" width="280" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-22" value="查找子类的类型" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="310" y="169" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-23" value="查找子类的方法表，如果重写就达到了多态的效果" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="310" y="210" width="280" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-24" value="ApplicationContext有多个实现&lt;br&gt;但是上层的方法调用代码都是一样的，至于你使用的是FileSystemXmlApplicationContext&lt;br&gt;还是ClassPathXmlApplicationContext在编译的时候是不可知的&amp;nbsp;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillWeight=4;hachureGap=8;hachureAngle=45;fillColor=#d5e8d4;sketch=1;strokeColor=#82b366;align=left;" parent="1" vertex="1">
+          <mxGeometry x="160" y="232.5" width="490" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-25" value="AOP" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillWeight=4;hachureGap=8;hachureAngle=45;fillColor=#f8cecc;sketch=1;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="90" y="490" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-26" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="191" y="680" width="20" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-29" value="动态代理：运行期间根据需要动态创建代理类&lt;br&gt;及其实例来完成具体的功能" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="204" y="686" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-30" value="静态代理：运行编译好的代理类" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="203" y="770" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-32" value="目的：在不修改源码的情况下，在代理类中对原来的方法进行增强" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="204" y="640" width="360" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-33" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="170" y="445" width="20" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-34" value="JDK动态代理" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="181" y="540" width="90" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-35" value="CGLIB动态代理" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="180" y="450" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="gpJ_NSvQPWh_NgJkB7wr-36" value="" style="curved=1;endArrow=classic;html=1;rounded=0;exitX=0.66;exitY=1.014;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="gpJ_NSvQPWh_NgJkB7wr-34" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="414" y="555" as="sourcePoint" />
+            <mxPoint x="250" y="680" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="290" y="570" />
+              <mxPoint x="300" y="610" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
