@@ -645,13 +645,13 @@ public class Foo {
 
 
 
-### Thread
+### Thread（done）
 
 #### 死锁
 
 ##### 死锁条件
 
-简单说：线程A持有互斥资源1，等待资源2，线程B持有资源2，等待线程A释放资源1，形成了一个闭环等待的阻塞链。
+简单说：线程A持有互斥资源1，等待线程B释放资源2，线程B持有资源2，等待线程A释放资源1，形成了一个闭环等待的阻塞链。
 
 1. 互斥条件：资源只能被一个线程占用，（比如Java的互斥锁，Mysql的行级锁）
 2. 请求与保持：线程已经持有了一个资源，同时还在请求另外一个资源
@@ -678,6 +678,8 @@ public class Foo {
    > ps指令查所有进程列表
 
 2. jstack指令查看当前进程所有线程的执行快照，看下有没有已知的死锁（deedlock字眼），没有的话，可以重点看下哪些线程是被BLOCK的，代码当前在执行哪一行，有没有循环阻塞，持有那个锁在等待哪个锁
+
+3. 什么时候有理由怀疑？监控发现非网络IO导致的超时失败问题和接口RT尖刺。
 
 
 
@@ -823,47 +825,71 @@ JVM会为线程创建一个较大的栈空间，并初始化
 
 
 
+##### 锁分类
+
+<img src="../image/锁分类.png" alt="锁分类" style="zoom:50%;" /> 
+
+
+
 ##### synchronized
 
+原理
 
+synchronized是悲观锁，在操作同步资源之前需要给同步资源先加锁
 
-#### sync的优化
+加锁原理是利用操作系统的互斥锁来实现，同时利用**存在Java对象头里**的Mark Word来记录锁状态
 
-偏向锁
-
-自旋锁
-
-#### sync底层原理
-
-> 编译，monitor，对象头，锁优化
-
-https://stackoverflow.com/questions/3362303/whats-a-monitor-in-java
-
-监视器（管程）是一个并发控制的机制，保证只用一个线程能执行临界区的代码，维护线程间的等待通知机制
-
-enter the monitor (编译monitor enter)
-
-acquire the monitor
-
-owing the monitor 
-
-release the monitor(编译monitor exit)
+| 锁状态   | 存储内容                                                | 存储内容 |
+| :------- | :------------------------------------------------------ | :------- |
+| 偏向锁   | 偏向线程ID、偏向时间戳、对象分代年龄、是否是偏向锁（1） | 01       |
+| 轻量级锁 | 指向栈中锁记录的指针                                    | 00       |
+| 重量级锁 | 指向互斥量（重量级锁）的指针                            | 10       |
 
 
 
-#### sync 和 Lock的比较
+##### 锁升级优化
 
-公平非公平
+操作系统的互斥锁涉及内核态的操作，所以做了优化，尽量在用户态解决原子性问题，不得已再升级
 
-是否可中断（lockInterrupted）
+升级过程（随着竞态的激烈程度逐步升级）
+
+**偏向锁**
+
+> 状态：同步代码永远只会被一个线程执行，那么该线程会自动获取锁，降低获取锁的代价
+>
+> 实现：对象头记录线程ID
+
+
+
+**轻量级锁**
+
+> 状态：偏向锁持有期间被其他线程访问，同一时间只会有一个线程
+>
+> 实现：CAS尝试替换
+
+
+
+**重量级锁**
+
+> 状态：CAS期间又被其他线程访问，并发激烈
+>
+> 实现：退化到操作系统层面，所有等待线程阻塞
+
+
+
+##### 与ReentrantLock比较
+
+reentantLock更灵活可以实现：公平非公平
 
 关联多个条件（Condition），针对性的唤醒
 
-sync 更加简单，在业务中方便使用（尤其是1.6优化之后），Lock 复杂，在设计高效的数据结构或者源码中使用的多（我们一般使用线程的工具就好）
+synchronized 更加简单，在业务中方便使用（尤其是1.6优化之后），Lock 复杂，在设计高效的数据结构或者源码中使用的多（我们一般使用线程的工具就好）
+
+
 
 #### CAS
 
-CAS 调用的是本地方法，例如 Intel 通过处理器指令 CMPXCHG 在硬件上保证交换的原子性操作
+CAS 调用的是本地方法，在硬件层面保证交换的原子性操作
 
 它之所以高效，是因为与加锁相比它避免了互斥等待时间，和上下文切换
 
@@ -886,16 +912,6 @@ CAS 调用的是本地方法，例如 Intel 通过处理器指令 CMPXCHG 在硬
 可见性保证（JMM）
 
 **禁止指令重排序**（单例模式中的应用）
-
-#### [User Mode Kernel Mode](https://stackoverflow.com/questions/1311402/what-is-the-difference-between-user-and-kernel-modes-in-operating-systems)
-
-[geek](https://www.geeksforgeeks.org/user-mode-and-kernel-mode-switching/)
-
-#### [协程](https://stackoverflow.com/questions/1934715/difference-between-a-coroutine-and-a-thread)
-
-用户态线程，不发生系统调用，内核不可见
-
-
 
 
 
