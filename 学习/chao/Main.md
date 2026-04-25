@@ -1093,6 +1093,10 @@ How
 
 ### MySQL
 
+#### 索引
+
+
+
 #### 索引失效
 
 ![image-20220802105001720](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802105001720.png) 
