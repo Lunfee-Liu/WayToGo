@@ -24,7 +24,14 @@
 
 
 
+### 优化
 
+针对接口做过什么优化
+
+1. 优化循环内做调RPC或者查数据库，使用前置批量操作
+2. 使用线程池优化多任务提交
+3. 使用本地缓存增加缓存稳定性
+4. 使用分库分表防止慢sql
 
 
 
@@ -717,6 +724,16 @@ SHOW ENGINE INNODB STATUS
 
 
 
+#### 并发安全集合
+
+HashMap为什么不安全
+
+ccHashMap怎么实现安全的
+
+> HashMap 在并发场景下不安全，主要是因为它没有任何同步控制，在多线程 put 和 resize 时可能导致数据丢失、链表成环甚至死循环。而 ConcurrentHashMap 在 JDK1.8 中通过 CAS + synchronized 实现细粒度锁控制，读操作无锁，写操作只锁桶头节点，同时配合 volatile 保证可见性，从而实现线程安全且性能较高的并发容器。
+
+
+
 #### 并发与并行
 
 简单来说：并发表示多个任务同时在执行，互不干扰；并发的话一般指的是CPU内核可能会在不同的任务之间切换时间片。
@@ -929,7 +946,9 @@ CAS 调用的是本地方法，在硬件层面保证交换的原子性操作
 
 ![new_对象.drawio](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/new_%E5%AF%B9%E8%B1%A1.drawio.png)
 
-#### 垃圾回收
+#### 垃圾回收（重要）
+
+全流程：
 
 ![垃圾面试新](../drawio/垃圾面试新.jpg)
 
@@ -1073,7 +1092,7 @@ How
 
 
 
-####  三次握手
+####  三次握手（重要）
 
 ![三次握手.drawio](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.drawio.png)
 
@@ -1145,13 +1164,74 @@ B+树，
 
 ##### 索引的选择
 
-1. 查询频率高的才考虑设计索引
+1. 查询频率高的才考虑设计索引（不然做表级锁，发生死锁的概率增大）
 2. 索引的区分度（如status这种，执行引擎可能不会用索引，还是扫描全表）
 3. 业务中经常多个条件一起查，这时要用**联合索引**，能覆盖查最好
 
 
 
-##### 索引分析（慢sql分析）
+##### 索引分析（慢sql explain）
+
+一般10ms以内
+
+定位：
+
+1. 一般都有慢查询日志，接入告警的话，能精准的看到是哪条sql执行时间不符合预期
+2. 没接入的话可以通过调用trace的耗时查看具体是哪条sql
+
+
+
+分析：
+
+**EXPLAIN**
+
+“慢 SQL 本质上是扫描了不该扫描的数据量。”
+
+关注项目
+
+- type（是否全表扫描 ALL）
+
+  system/const(唯一索引命中) > ref(普通索引命中) > range(索引范围) > index(扫了索引全表，覆盖索引) > ALL(扫全表)
+
+- key（有没有走索引）
+
+- rows（扫描行数）
+
+
+
+优化：
+
+**SQL 层**
+
+- 数据量大时，看能不能避免使用in，like，or
+
+- 看分页查询有没有做page size限制
+
+**索引层**
+
+- 没有索引的高频查询要考虑加索引
+- 如果可以的话，使用覆盖索引，减少回表
+
+- 避免索引失效
+
+
+
+**架构上**
+
+- 分库分表（数据量太大，单表承载不了，查询深度高）
+- 引入缓存（Redis / 本地缓存）
+
+
+
+
+
+验证：
+
+- explain sql
+
+- 最好压测下看看监控的慢sql是否
+
+
 
 
 
@@ -1191,10 +1271,14 @@ B+树，
 >
 > Read Uncommitted(by dirty read): 读并发事务的提交/未提交的更新
 
+
+
+
+
 ##### 如何实现隔离级别
 
 >1. Serializable: 使用加锁的方式，对读操作使用共享锁，写操作使用排他锁，除了（read/read）其它的竞态都会导致等待锁。
->2. Repeatable Read: 通过**一致性无锁读**的方式，从事务开启到提交，只使用同一个快照（read-view）
+>2. Repeatable Read: 通过**一致性加锁读**的方式，从事务开启到提交，只使用同一个快照（read-view）
 >3. Read Committed: 通过一致性无锁读的方式，but the difference from Repeatable Read level is that each consistent read within a transaction sets and reads its own fresh snapshot（但是每次每一次读都会fresh这个快照），所以可以读并发事务的已提交数据。
 >4. Read Uncommitted: 脏读，读的是内存中日志缓冲区（redolog）的数据。
 
@@ -1205,15 +1289,23 @@ B+树，
 - 加锁读: Select records with a shared lock or an exclusive lock.
 - 脏读: 读其它事务未提交的数据（内存中的日志缓冲区（redolog）的数据）
 
-##### Spring 对事务的参数设置
+
+
+##### [Spring 对事务的参数设置](#Spring事务)
 
 Spring **会为每个连接创建一个会话**，在会话里使用自定义的隔离级别，传播方式，只有在缺省（default）的情况下才选择数据库的默认方式。
 
 如果说我们开发的过程中习惯性的对数据库事务操作隔离级别进行一个显示声明，那么数据库默认的隔离级别的作用仅仅是作为一个兜底的作用
 
+
+
+
+
 #### 锁
 
 隔离级别的实现无非就是为了解决（read/read，read/write，write/write）的冲突。
+
+
 
 ##### 锁分类
 
@@ -1240,7 +1332,9 @@ InnoDB 行锁是通过给索引上的索引项加锁来实现的，这一点 MyS
 
 5）Next-Key
 
-由行锁+间隙锁组成的锁成为 Next-Key 锁，可理解为闭区间锁。
+由行锁+间隙锁组成的锁成为 Next-Key 锁，可理解为闭区间锁，可重复读的关键
+
+
 
 #####  锁的使用场景
 
@@ -1259,6 +1353,8 @@ InnoDB 行锁是通过给索引上的索引项加锁来实现的，这一点 MyS
 - 可重复读：有行锁、间隙锁、Next-Key 锁，可重复读也就是通过间隙锁、Next-Key 锁来防止幻读的。
 
 [更多](https://zhuanlan.zhihu.com/p/29150809)
+
+
 
 #### [日志](https://www.alibabacloud.com/blog/what-are-the-differences-and-functions-of-the-redo-log-undo-log-and-binlog-in-mysql_598035)与一条更新语句的执行
 
@@ -1481,7 +1577,7 @@ RDB，AOF 和主从复制对过期过期键的处理
 >
 >**缓存击穿**：热点 key （打散）过期；**源头解决**：防止热点 key 的产生；**解决**：永不过期
 >
->**缓存穿透**：无法缓存不存在的值，直接打到数据库；**解决**：1.把无效的Key存进Redis中（设置合适的过期时间）；2.
+>**缓存穿透**：无法缓存不存在的值，直接打到数据库；**解决**：1.把无效的Key存进Redis中（设置合适的过期时间）；
 
 #### [数据一致性](https://mp.weixin.qq.com/s/4W7vmICGx6a_WX701zxgPQ)
 
@@ -1511,19 +1607,7 @@ redis-cell 漏斗
 
 ![image-20220731151931011](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220731151931011.png) 
 
-### Rabbit MQ
 
-#### 通信方式
-
-| 类型                                                         | 结构                                                         | 说明                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ["Hello World!"](https://www.rabbitmq.com/tutorials/tutorial-one-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-one.png) | 看起来是发布方直接将消息发布到queue;实际上是帮我们屏蔽了 X 而已 |
-| [Work queues](https://www.rabbitmq.com/tutorials/tutorial-two-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-two.png) |                                                              |
-| [Publish/Subscribe](https://www.rabbitmq.com/tutorials/tutorial-three-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-three.png) |                                                              |
-| [Routing](https://www.rabbitmq.com/tutorials/tutorial-four-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-four.png) |                                                              |
-| [Topics](https://www.rabbitmq.com/tutorials/tutorial-five-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-five.png) |                                                              |
-| [RPC](https://www.rabbitmq.com/tutorials/tutorial-six-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-six.png) |                                                              |
-| [Publisher Confirms](https://www.rabbitmq.com/tutorials/tutorial-seven-java.html) |                                                              |                                                              |
 
 
 
@@ -1716,7 +1800,11 @@ exactly once
 > - 如果短时间内没有⾜够的服务器资源进⾏扩容，没办法的办法是，将系统降级，通过关闭⼀些不重要的业务，减少发送⽅发送 的数据量，最低限度让系统还能正常运转，服务⼀些重要业务。
 > - 还有⼀种不太常⻅的情况，你通过监控发现，⽆论是发送消息的速度还是消费消息的速度和原来都没什么变化，这时候你需要检查⼀下你的消费端，是不是消费失败导致的⼀条消息反复消费这种情况⽐较多，这种情况也会拖慢整个系统的消费速度。 如果监控到消费变慢了，你需要检查你的消费实例，分析⼀下是什么原因导致消费变慢。优先检查⼀下⽇志是否有⼤量的消费错误，如果没有错误的话，可以通过打印堆栈信息，看⼀下你的消费线程是不是卡在什么地⽅不动了，⽐如触发了死锁或者卡在等待某些资源上了。
 
-### Git
+
+
+
+
+### Git（kill）
 
 #### Use case
 
@@ -1817,7 +1905,7 @@ rebase:
 >
 > 
 
-#### Springboot 启动过程
+#### Springboot 启动过程（重要）
 
 @Configuration
 
@@ -1889,7 +1977,7 @@ CGLib 动态代理
 
 ![image-20220612160513625](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220612160513625.png)
 
-#### 事务
+#### Spring事务
 
 ##### 实现方式
 
@@ -1901,6 +1989,8 @@ definition 定义传播性 回滚规则
 
 回滚规则默认 rollBackFor(RunTimeExecption)
 
+
+
 ##### 传播性 （一个事务方法调用另外一个事务方法）
 
 默认REQUIRED  并入同一个事务，同时提交或回滚
@@ -1908,6 +1998,8 @@ definition 定义传播性 回滚规则
 REQUIRES_NEW  两个事务，外面不影响里面，里吞外好，里抛外寄（外事务挂起时可能会因为表锁而造成阻塞）
 
 NESTED 嵌套（子事务），外回里回，里回外不回
+
+
 
 ##### 事务失效
 
@@ -1917,6 +2009,8 @@ NESTED 嵌套（子事务），外回里回，里回外不回
 2. 如果方法是私有的也不能被代理，事务失效（如果是private或default不报错但是会失效）
 
 3. 当然数据库引擎需要支持事务
+
+
 
 **内部调用解决**(直接获取代理类，不够优雅)
 
@@ -1949,7 +2043,7 @@ public class DemoService {
 
 
 
-### IO
+### IO(kill)
 
 #### [select/poll/epoll](https://mp.weixin.qq.com/s/Qpa0qXxuIM8jrBqDaXmVNA)
 
@@ -1957,7 +2051,9 @@ https://www.zhihu.com/question/19732473/answer/20851256
 
 [Reactor](https://xiaolincoding.com/os/8_network_system/reactor.html#%E5%8D%95-reactor-%E5%8D%95%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B)
 
-### 设计原则
+
+
+### 设计原则（kill）
 
 | 标记 | 设计模式原则名称  | 简单定义                                         |
 | :--- | :---------------- | :----------------------------------------------- |
@@ -1969,74 +2065,13 @@ https://www.zhihu.com/question/19732473/answer/20851256
 | CARP | 合成/聚合复用原则 | 尽量使用合成/聚合，而不是通过继承达到复用的目的  |
 | LOD  | 迪米特法则        | 一个软件实体应当尽可能少的与其他实体发生相互作用 |
 
-### 设计模式
-
-#### 单例模式 != Spring 单例
-
-设计模式中的单例模式指的是对于同一个类，只会创建唯一的一个对象，该类不能使用 new 关键字创建对象，因为构造器是私有的，只能通过调用一个 static 方法（通常为 getInstance）返回同一个实例
-
-Spring 中的 bean 作用域 Singleton scope 和单例模式没什么关系，只代表当前的 bean 只会被实例化一次，但是并不要求当前类只有一个对象，也不要求构造器私有。
-
-> Spring 中的作用域有 Singleton，Prototype，Request（每一个http 请求），Session
-
-那单例模式有什么应用吗
-
-
-
-写一个安全的单例模式
-
-```java
-class Foo {
-
-    // Pay attention to volatile
-    private static volatile Foo INSTANCE = null;
-
-    // TODO Add private shouting constructor
-
-    public static Foo getInstance() {
-        if (INSTANCE == null) { // Check 1 防止同步太多次
-            synchronized (Foo.class) {
-                if (INSTANCE == null) { // Check 2
-                    INSTANCE = new Foo();
-                }
-            }
-        }
-        return INSTANCE;
-    }
-}
-```
-
-
-
-#### 单例模式 vs 静态类
-
-为什么要用单例模式呢，静态类不是也可以保证只有一个“实例”吗
-
-> 原因是使用单例模式的对象就是一个普通的对象，可以作为参数传递，而且可以实现接口，比静态方法要灵活
+#### 
 
 
 
 #### aqs: 模板方法
 
 
-
-#### 观察者模式
-
-### 待总结
-
-#### servlet生命周期
-
-Servlet的生命周期一般可以用三个方法来表示：
-
-1. ​    init()：仅执行一次，负责在装载Servlet时初始化Servlet对象
-   ​    
-2. ​    service() ：核心方法，一般HttpServlet中会有get,post两种处理方式。在调用doGet和doPost方法时会构造servletRequest和servletResponse请求和响应对象作为参数。
-   ​    
-3. ​    destory()：在停止并且卸载Servlet时执行，负责释放资源  
-
-​    初始化阶段：Servlet启动，会读取配置文件中的信息，构造指定的Servlet对象，创建ServletConfig对象，将ServletConfig作为参数来调用init()方法。所以选ACD。B是在调用service方法时才构造的
-
-![image-20220616211351986](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220616211351986.png) 
 
 ### 手写
 
@@ -2452,18 +2487,6 @@ public class MyBlockingQueue<E> {
 ```
 
 
-
-### 简历问答
-
-![image-20220801102113810](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220801102113810.png)
-
-![image-20220802104230485](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802104230485.png) 
-
-![image-20220802104249091](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802104249091.png)
-
-![image-20220802104348441](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802104348441.png)
-
-![image-20220802104438658](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802104438658.png)
 
 ### 空白
 
