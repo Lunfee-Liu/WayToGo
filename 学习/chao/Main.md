@@ -2,23 +2,67 @@
 
 #### JDK
 
-![image-20220913222605337](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222605337.png)
+<img src="https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222605337.png" alt="image-20220913222605337" style="zoom:50%;" /> 
 
 #### 数据类型
 
-![image-20220913221206824](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913221206824.png)
+<img src="https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913221206824.png" alt="image-20220913221206824" style="zoom:50%;" /> 
 
 #### 权限修饰符
 
-![image-20220913222517213](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222517213.png)
+<img src="https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222517213.png" alt="image-20220913222517213" style="zoom:67%;" /> 
 
 #### static
 
 ![image-20220913222826916](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222826916.png)
 
-#### 多态
 
-![image-20220913223140266](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913223140266.png)
+
+### 面向对象
+
+#### 特性
+
+1. 封装：定义private属性，暴露操作属性的方法，只能按方法给定的方式改变对象的状态
+
+   目的：保护对象的属性，规范对象的行为
+
+   示例：暴露转账transfer(Account userTo)方案，隐藏Account.balance属性
+
+2. 继承：复用父类的属性和行为
+
+   目的：代码复用，语义抽象
+
+   示例：各种基类的定义，抽象方法的实现
+
+3. 多态：同一个接口，不同实现类，在运行时表现不同
+
+   目的：写代码时面向抽象，运行时面向实现
+
+   示例：策略模式、接口编程，外部调用sendToServer，运行时决定是哪个类执行
+
+
+
+#### 对面向对象的理解
+
+我对面向对象的理解就是**抽象**，通过封装，继承，多态让系统结构清晰（降低认知复杂度）
+
+- 尤其是在从0到1构建一个项目的时候，怎么对业务进行建模，定义模型的属性，交互方式和边界）除了看得见摸得着的包裹，大箱，提单，还有看不见摸不着的，比如渠道预判要判，一个包裹经由哪个物流商，哪个港口，哪个国家出海。把一系列属性抽象成一个新的概念：清关线路
+
+- 比如不同的类有共同的行为，我们可以抽象出公共抽象类或者接口
+
+- 比如通用的业务流程，我们抽象成模板方法
+
+- 比如不同的实现，我们用面向接口编程
+
+
+
+#### 与面向过程的区别
+
+- 面向过程：关注“步骤”，函数驱动
+- 面向对象：关注“对象”，行为由对象发起
+
+一句更工程化的话：
+ 👉 面向过程适合简单流程，面向对象适合复杂系统建模
 
 
 
@@ -1279,7 +1323,7 @@ B+树，
 
 >1. Serializable: 使用加锁的方式，对读操作使用共享锁，写操作使用排他锁，除了（read/read）其它的竞态都会导致等待锁。
 >2. Repeatable Read: 通过**一致性加锁读**的方式，从事务开启到提交，只使用同一个快照（read-view）
->3. Read Committed: 通过一致性无锁读的方式，but the difference from Repeatable Read level is that each consistent read within a transaction sets and reads its own fresh snapshot（但是每次每一次读都会fresh这个快照），所以可以读并发事务的已提交数据。
+>3. Read Committed: 通过一致性无锁读的方式，but the difference from Repeatable Read level is that each consistent read within a transaction sets and reads its own fresh snapshot（但是每一次读都会fresh这个快照），所以可以读并发事务的已提交数据。
 >4. Read Uncommitted: 脏读，读的是内存中日志缓冲区（redolog）的数据。
 
 - 共享锁: 允许持有共享锁的事务读一行记录，多个并发线程可以同时获取一行记录的共享锁；
@@ -1459,7 +1503,7 @@ hash：元数据
 
 ![redis应用.drawio](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/redis%E5%BA%94%E7%94%A8.drawio.png) 
 
-##### 跳跃表与红黑树
+
 
 
 
@@ -1467,9 +1511,7 @@ hash：元数据
 
 ![缓存类型](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/%E7%BC%93%E5%AD%98%E7%B1%BB%E5%9E%8B.png) 
 
-#### 与memcached的区别
 
-![image-20220607195816514](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220607195816514.png) 
 
 #### Redis 快？
 
@@ -1496,11 +1538,15 @@ hash：元数据
 
 **与很多单线程模型一样**，Redis 使用的时时间循环的机制循环处理文件事件和定时事件来完成完整的功能
 
+
+
 ------> IO reactor
 
 #### Pipeline与Lua
 
 ![image-20220609103516149](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220609103516149.png) 
+
+
 
 #### 线程模型（redis6.0前后）
 
