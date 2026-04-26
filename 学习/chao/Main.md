@@ -669,6 +669,8 @@ public class Foo {
 
 ##### 死锁排查
 
+[（回Mysql）](# MySQL)
+
 **Java层面的话可以：**
 
 1. top 指令看下当前当前可能异常的进程 或者 ps指令查当前进程的PID
@@ -1091,15 +1093,37 @@ How
 
 ![image-20221206162434232](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20221206162434232.png)
 
+
+
+
+
 ### MySQL
 
 #### 索引
 
+> 索引设计的目的是快速定位到数据的位置，
+
+##### 索引的结构
+
+B+树
+
+##### 索引的选择
 
 
-#### 索引失效
+
+##### 索引分析（慢sql分析）
+
+
+
+##### 索引失效
 
 ![image-20220802105001720](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802105001720.png) 
+
+
+
+##### [死锁排查](#死锁排查)
+
+
 
 #### [隔离级别解释与实现](https://dzone.com/articles/transaction-management-with-spring-and-mysql)
 
