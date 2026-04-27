@@ -70,14 +70,37 @@
 
 ### 优化
 
+#### 接口优化
+
 针对接口做过什么优化
 
 1. 优化循环内做调RPC或者查数据库，使用前置批量操作
-2. 使用线程池优化多任务提交
-3. 使用本地缓存增加缓存稳定性
-4. 使用分库分表防止慢sql
+2. 使用异步方式降低接口等待时间
+3. 使用线程池优化多任务提交
+4. 使用本地缓存增加缓存稳定性
+5. 使用分库分表防止慢sql
 
 
+
+#### 保护
+
+削峰，限流
+
+
+
+#### 幂等设计
+
+WHY：接口不可以避免的重试，消息保证不丢失也可能有重复消息
+
+HOW：
+
+- 业务唯一键（某个行为定义唯一标识）+数据库唯一约束（数据库兜底）
+- 针对重复点击，幂等token，类似分布式锁，前端携带，命中返回第一次的结果
+- 一般会给某个操作加一个状态，校验状态是否符合预期，防止状态跃迁，状态变更要加锁
+
+
+
+#### 分布式事务保证
 
 
 
@@ -704,6 +727,8 @@ public class Foo {
 
 简单说：线程A持有互斥资源1，等待线程B释放资源2，线程B持有资源2，等待线程A释放资源1，形成了一个闭环等待的阻塞链。
 
+有的时候我们也把一个线程因为操作不当永久性持有资源，导致其他线程永久等待也就死锁，如redis 分布式锁
+
 1. 互斥条件：资源只能被一个线程占用，（比如Java的互斥锁，Mysql的行级锁）
 2. 请求与保持：线程已经持有了一个资源，同时还在请求另外一个资源
 3. 不可剥夺：线程已经持有的资源只能由自己释放，不能被剥夺
@@ -994,7 +1019,9 @@ CAS 调用的是本地方法，在硬件层面保证交换的原子性操作
 
 全流程：
 
-![垃圾面试新](../drawio/垃圾面试新.jpg)
+G1的理解：todo
+
+<img src="../drawio/垃圾面试新.jpg" alt="垃圾面试新" style="zoom:150%;" />
 
 ### 计算机网络
 
@@ -1495,6 +1522,12 @@ when to release
 
 ![image-20220615163653033](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220615163653033.png) 
 
+
+
+### ES(todo)
+
+为什么插入有性能问题
+
 ### Redis
 
 hash：元数据
@@ -1928,6 +1961,24 @@ rebase:
 
 ### Spring
 
+#### SpringBoot的启动流程
+
+SpringBoot的启动类就是一个run方法配合@SpringBootApplication注解
+
+主要靠注解实现启动流程的配置（Bean的装配）
+
+@Configuration 用于定义配置类和 Bean
+
+@ComponentScan 负责扫描并注册组件
+
+@EnableAutoConfiguration 则通过 spring.factories 加载自动配置类，根据条件注解按需装配 Bean，三者共同完成了 Spring Boot 的自动化启动和 IoC 容器构建。
+
+
+
+#### Bean生命周期和扩展点
+
+
+
 #### [@Bean 和 @Component 区别](https://stackoverflow.com/questions/10604298/spring-component-versus-bean)
 
 > @Component(可能以@Service 或者 @Controller的形式派生) 通过组件扫描（@ComponentScan）和自动依赖注入的方式创建Bean，一个类就对应一个Bean
@@ -2300,30 +2351,56 @@ public class LRUCache {
 ![image-20220802105102915](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802105102915.png)
 
 ```java
+import java.util.Random;
+
 class Solution {
+    // 全局随机数生成器，避免重复创建
+    private final Random random = new Random();
+
     public int[] sortArray(int[] nums) {
-        return quickSort(nums, 0, nums.length - 1);
-    }
-    int[] quickSort(int[] nums, int left, int right) {
-        if(right - left < 1) return nums;
-        int partition = partition(nums, left, right);
-        quickSort(nums, left, partition - 1);
-        quickSort(nums, partition + 1, right);
+        if (nums == null || nums.length <= 1) {
+            return nums;
+        }
+        quickSort(nums, 0, nums.length - 1);
         return nums;
     }
-    int partition(int[] nums, int left, int right){
-        swap(nums, left, (int)(Math.random() * (right - left + 1)) + left );
-        int povit = left;
-        int index = povit + 1;
-        for(int i = index; i <= right; i++) {
-            if(nums[i] < nums[povit]) {
-                swap(nums, i, index++);
+
+    // 快速排序递归
+    private void quickSort(int[] nums, int left, int right) {
+        // 递归终止条件
+        if (left >= right) {
+            return;
+        }
+        // 获取分区点
+        int pivotIndex = partition(nums, left, right);
+        // 递归排序左右两部分
+        quickSort(nums, left, pivotIndex - 1);
+        quickSort(nums, pivotIndex + 1, right);
+    }
+
+    // 分区函数（随机基准）
+    private int partition(int[] nums, int left, int right) {
+        // 随机选基准，交换到 left 位置
+        int randomIdx = left + random.nextInt(right - left + 1);
+        swap(nums, left, randomIdx);
+
+        int pivot = nums[left];
+        int smallIndex = left + 1;
+
+        // 把小于 pivot 的放到左边区域
+        for (int i = smallIndex; i <= right; i++) {
+            if (nums[i] < pivot) {
+                swap(nums, i, smallIndex++);
             }
         }
-        swap(nums, povit, --index);
-        return index;
+
+        // 把基准放到最终位置
+        swap(nums, left, smallIndex - 1);
+        return smallIndex - 1;
     }
-    void swap(int[] nums, int i, int j) {
+
+    // 交换工具方法
+    private void swap(int[] nums, int i, int j) {
         int temp = nums[i];
         nums[i] = nums[j];
         nums[j] = temp;
@@ -2336,41 +2413,49 @@ class Solution {
 ```java
 class Solution {
     public int[] sortArray(int[] nums) {
+        if (nums == null || nums.length <= 1) {
+            return nums;
+        }
         mergeSort(nums, 0, nums.length - 1);
         return nums;
     }
-    private void mergeSort(int[] originArray, int left, int right) {
-        if (right > left) {
-            int mid = left + (right - left) / 2;
-            mergeSort(originArray, left, mid);
-            mergeSort(originArray, mid + 1, right);
-            merge(originArray, left, mid, right);
+
+    // 归并排序递归
+    private void mergeSort(int[] nums, int left, int right) {
+        // 递归终止条件：left == right 时只有一个元素，无需排序
+        if (left >= right) {
+            return;
         }
 
+        // 防止溢出的标准取中值方式
+        int mid = left + (right - left) / 2;
+
+        mergeSort(nums, left, mid);      // 排序左半
+        mergeSort(nums, mid + 1, right); // 排序右半
+        merge(nums, left, mid, right);   // 合并两个有序数组
     }
 
-    private void merge(int[] arr, int left, int mid, int right) {
-        int i = left;
-        int j = mid + 1;
+    // 合并两个有序区间 [left, mid] 和 [mid+1, right]
+    private void merge(int[] nums, int left, int mid, int right) {
+        int i = left;    // 左数组指针
+        int j = mid + 1; // 右数组指针
+        int k = 0;       // 临时数组指针
+
+        // 临时数组存储合并结果
         int[] temp = new int[right - left + 1];
-        int cur = 0;
+
+        // 双指针合并
         while (i <= mid && j <= right) {
-            if (arr[i] <= arr[j]) {
-                temp[cur++] = arr[i++];
-            } else {
-                temp[cur++] = arr[j++];
-            }
+            temp[k++] = nums[i] <= nums[j] ? nums[i++] : nums[j++];
         }
 
-        while (i <= mid) {
-            temp[cur++] = arr[i++];
-        }
-        while (j <= right) {
-            temp[cur++] = arr[j++];
-        }
-        cur = 0;
-        for(int k = left; k <= right; k++) {
-            arr[k] = temp[cur++];
+        // 复制剩余元素
+        while (i <= mid) temp[k++] = nums[i++];
+        while (j <= right) temp[k++] = nums[j++];
+
+        // 将临时数组复制回原数组
+        for (int m = 0; m < temp.length; m++) {
+            nums[left + m] = temp[m];
         }
     }
 }
