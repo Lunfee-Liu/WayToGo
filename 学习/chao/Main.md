@@ -2,31 +2,123 @@
 
 #### JDK
 
-![image-20220913222605337](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222605337.png)
+<img src="https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222605337.png" alt="image-20220913222605337" style="zoom:50%;" /> 
 
 #### 数据类型
 
-![image-20220913221206824](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913221206824.png)
+<img src="https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913221206824.png" alt="image-20220913221206824" style="zoom:50%;" /> 
 
 #### 权限修饰符
 
-![image-20220913222517213](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222517213.png)
+<img src="https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222517213.png" alt="image-20220913222517213" style="zoom:67%;" /> 
 
 #### static
 
 ![image-20220913222826916](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222826916.png)
 
-#### 多态
-
-![image-20220913223140266](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913223140266.png)
 
 
+### 面向对象
+
+#### 特性
+
+1. 封装：定义private属性，暴露操作属性的方法，只能按方法给定的方式改变对象的状态
+
+   目的：保护对象的属性，规范对象的行为
+
+   示例：暴露转账transfer(Account userTo)方案，隐藏Account.balance属性
+
+2. 继承：复用父类的属性和行为
+
+   目的：代码复用，语义抽象
+
+   示例：各种基类的定义，抽象方法的实现
+
+3. 多态：同一个接口，不同实现类，在运行时表现不同
+
+   目的：写代码时面向抽象，运行时面向实现
+
+   示例：策略模式、接口编程，外部调用sendToServer，运行时决定是哪个类执行
+
+
+
+#### 对面向对象的理解
+
+我对面向对象的理解就是**抽象**，通过封装，继承，多态让系统结构清晰（降低认知复杂度）
+
+- 尤其是在从0到1构建一个项目的时候，怎么对业务进行建模，定义模型的属性，交互方式和边界）除了看得见摸得着的包裹，大箱，提单，还有看不见摸不着的，比如渠道预判要判，一个包裹经由哪个物流商，哪个港口，哪个国家出海。把一系列属性抽象成一个新的概念：清关线路
+
+- 比如不同的类有共同的行为，我们可以抽象出公共抽象类或者接口
+
+- 比如通用的业务流程，我们抽象成模板方法
+
+- 比如不同的实现，我们用面向接口编程
+
+
+
+#### 与面向过程的区别
+
+- 面向过程：关注“步骤”，函数驱动
+- 面向对象：关注“对象”，行为由对象发起
+
+一句更工程化的话：
+ 👉 面向过程适合简单流程，面向对象适合复杂系统建模
 
 
 
 
 
+### 优化
 
+#### 接口优化
+
+针对接口做过什么优化
+
+1. 优化循环内做调RPC或者查数据库，使用前置批量操作
+2. 使用异步方式降低接口等待时间
+3. 使用线程池优化多任务提交
+4. 使用本地缓存增加缓存稳定性
+5. 使用分库分表防止慢sql
+
+
+
+#### 保护
+
+削峰，限流，机器负载冗余
+
+
+
+#### 幂等设计
+
+WHY：接口不可以避免的重试，消息保证不丢失也可能有重复消息
+
+HOW：
+
+- 业务唯一键（某个行为定义唯一标识）+数据库唯一约束（数据库兜底）
+- 针对重复点击，幂等token，类似分布式锁，前端携带，命中返回第一次的结果
+- 一般会给某个操作加一个状态，校验状态是否符合预期，防止状态跃迁，状态变更要加锁
+
+
+
+#### 分布式事务保证
+
+放弃强一致性，追求最终一致性
+
+比如使用消息，先不提交，锁住资源，等其他数据库执行成功再提交
+
+
+
+没有一致性要求很高的场景，一般来说都可以有异步校验机制或者其他补偿机制
+
+
+
+### Bug（todo）
+
+引用传递
+
+多线程包异常（这个感觉意义不大）
+
+缓存导致这个OOM
 
 
 
@@ -653,6 +745,8 @@ public class Foo {
 
 简单说：线程A持有互斥资源1，等待线程B释放资源2，线程B持有资源2，等待线程A释放资源1，形成了一个闭环等待的阻塞链。
 
+有的时候我们也把一个线程因为操作不当永久性持有资源，导致其他线程永久等待也就死锁，如redis 分布式锁
+
 1. 互斥条件：资源只能被一个线程占用，（比如Java的互斥锁，Mysql的行级锁）
 2. 请求与保持：线程已经持有了一个资源，同时还在请求另外一个资源
 3. 不可剥夺：线程已经持有的资源只能由自己释放，不能被剥夺
@@ -714,6 +808,16 @@ select * from user where id > 10 for update;
 
 如何查看
 SHOW ENGINE INNODB STATUS
+
+
+
+#### 并发安全集合
+
+HashMap为什么不安全
+
+ccHashMap怎么实现安全的
+
+> HashMap 在并发场景下不安全，主要是因为它没有任何同步控制，在多线程 put 和 resize 时可能导致数据丢失、链表成环甚至死循环。而 ConcurrentHashMap 在 JDK1.8 中通过 CAS + synchronized 实现细粒度锁控制，读操作无锁，写操作只锁桶头节点，同时配合 volatile 保证可见性，从而实现线程安全且性能较高的并发容器。
 
 
 
@@ -929,9 +1033,49 @@ CAS 调用的是本地方法，在硬件层面保证交换的原子性操作
 
 ![new_对象.drawio](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/new_%E5%AF%B9%E8%B1%A1.drawio.png)
 
+
+
 #### 垃圾回收
 
-![垃圾面试新](../drawio/垃圾面试新.jpg)
+**全流程（我讲一下我的理解）**
+
+1. 标记 Mark：从 GC Roots 出发，遍历存活对象，标记谁活着、谁是垃圾
+2. 回收：清理死亡对象、释放内存；或把存活对象复制 / 转移（复制算法）
+3. 整理：消除内存碎片，让内存连续，避免大对象分配失败。
+
+G1的特点（1234）：
+
+1. **分Region**，逻辑上分新生代，老年代，大对象，动态调整大小
+2. **局部回收，不是整堆回收**，只挑选「垃圾最多的 Region」优先回收
+3. 依靠 **MaxGCPauseMillis** 做自适应控制：控制回收次数，保证延时低
+4. 混合回收：YoungGC可能会顺便回收部分老年代出发MixGC
+5. 并发标记（重新标记阶段）：并发执行，耗时短
+6. 复制算法：新生老年代都是复制算法，没有内存碎片
+
+
+
+**回收时机**
+
+Young GC：Eden 区写满、分配新对象放不下 → 立刻触发
+
+Mixed GC：当堆区占用达阈值（45%），会触发并发标记，然后在YoungGC 后回收部分老年代
+
+Full GC（整堆可能达到秒级别）：
+
+1. 老年代彻底写满，Mixed 回收速度 < 对象晋升速度
+2. 内存泄漏：老年代对象只增不减
+3. 巨型大对象（Humongous）过多，连续分配失败
+4. 并发标记失败：浮动垃圾过多、回收跟不上
+
+OOM：
+
+1. 可能出现内存泄露，清不干净
+2. 全局缓存无限膨胀
+3. 超大对象过多，都存活
+
+
+
+<img src="../drawio/垃圾面试新.jpg" alt="垃圾面试新" style="zoom:150%;" />
 
 ### 计算机网络
 
@@ -1073,7 +1217,7 @@ How
 
 
 
-####  三次握手
+####  三次握手（重要）
 
 ![三次握手.drawio](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.drawio.png)
 
@@ -1145,13 +1289,74 @@ B+树，
 
 ##### 索引的选择
 
-1. 查询频率高的才考虑设计索引
+1. 查询频率高的才考虑设计索引（不然做表级锁，发生[死锁](# 死锁排查)的概率增大）
 2. 索引的区分度（如status这种，执行引擎可能不会用索引，还是扫描全表）
 3. 业务中经常多个条件一起查，这时要用**联合索引**，能覆盖查最好
 
 
 
-##### 索引分析（慢sql分析）
+##### 索引分析（慢sql explain）
+
+一般10ms以内
+
+定位：
+
+1. 一般都有慢查询日志，接入告警的话，能精准的看到是哪条sql执行时间不符合预期
+2. 没接入的话可以通过调用trace的耗时查看具体是哪条sql
+
+
+
+分析：
+
+**EXPLAIN**
+
+“慢 SQL 本质上是扫描了不该扫描的数据量。”
+
+关注项目
+
+- type（是否全表扫描 ALL）
+
+  system/const(唯一索引命中) > ref(普通索引命中) > range(索引范围) > index(扫了索引全表，覆盖索引) > ALL(扫全表)
+
+- key（有没有走索引）
+
+- rows（扫描行数）
+
+
+
+优化：
+
+**SQL 层**
+
+- 数据量大时，看能不能避免使用in，like，or
+
+- 看分页查询有没有做page size限制
+
+**索引层**
+
+- 没有索引的高频查询要考虑加索引
+- 如果可以的话，使用覆盖索引，减少回表
+
+- 避免索引失效
+
+
+
+**架构上**
+
+- 分库分表（数据量太大，单表承载不了，查询深度高）
+- 引入缓存（Redis / 本地缓存）
+
+
+
+
+
+验证：
+
+- explain sql
+
+- 最好压测下看看监控的慢sql是否
+
+
 
 
 
@@ -1165,7 +1370,7 @@ B+树，
 
 
 
-#### [隔离级别解释与实现](https://dzone.com/articles/transaction-management-with-spring-and-mysql)
+#### [隔离级别解释与实现](https://dzone.com/articles/transaction-management-with-spring-and-mysql)（todo）
 
 ##### 事务四大特性
 
@@ -1191,11 +1396,15 @@ B+树，
 >
 > Read Uncommitted(by dirty read): 读并发事务的提交/未提交的更新
 
+
+
+
+
 ##### 如何实现隔离级别
 
 >1. Serializable: 使用加锁的方式，对读操作使用共享锁，写操作使用排他锁，除了（read/read）其它的竞态都会导致等待锁。
->2. Repeatable Read: 通过**一致性无锁读**的方式，从事务开启到提交，只使用同一个快照（read-view）
->3. Read Committed: 通过一致性无锁读的方式，but the difference from Repeatable Read level is that each consistent read within a transaction sets and reads its own fresh snapshot（但是每次每一次读都会fresh这个快照），所以可以读并发事务的已提交数据。
+>2. Repeatable Read: 通过**一致性加锁读**的方式，从事务开启到提交，只使用同一个快照（read-view）
+>3. Read Committed: 通过一致性无锁读的方式，but the difference from Repeatable Read level is that each consistent read within a transaction sets and reads its own fresh snapshot（但是每一次读都会fresh这个快照），所以可以读并发事务的已提交数据。
 >4. Read Uncommitted: 脏读，读的是内存中日志缓冲区（redolog）的数据。
 
 - 共享锁: 允许持有共享锁的事务读一行记录，多个并发线程可以同时获取一行记录的共享锁；
@@ -1205,15 +1414,23 @@ B+树，
 - 加锁读: Select records with a shared lock or an exclusive lock.
 - 脏读: 读其它事务未提交的数据（内存中的日志缓冲区（redolog）的数据）
 
-##### Spring 对事务的参数设置
+
+
+##### [Spring 对事务的参数设置](#Spring事务)
 
 Spring **会为每个连接创建一个会话**，在会话里使用自定义的隔离级别，传播方式，只有在缺省（default）的情况下才选择数据库的默认方式。
 
 如果说我们开发的过程中习惯性的对数据库事务操作隔离级别进行一个显示声明，那么数据库默认的隔离级别的作用仅仅是作为一个兜底的作用
 
+
+
+
+
 #### 锁
 
 隔离级别的实现无非就是为了解决（read/read，read/write，write/write）的冲突。
+
+
 
 ##### 锁分类
 
@@ -1240,7 +1457,9 @@ InnoDB 行锁是通过给索引上的索引项加锁来实现的，这一点 MyS
 
 5）Next-Key
 
-由行锁+间隙锁组成的锁成为 Next-Key 锁，可理解为闭区间锁。
+由行锁+间隙锁组成的锁成为 Next-Key 锁，可理解为闭区间锁，可重复读的关键
+
+
 
 #####  锁的使用场景
 
@@ -1259,6 +1478,8 @@ InnoDB 行锁是通过给索引上的索引项加锁来实现的，这一点 MyS
 - 可重复读：有行锁、间隙锁、Next-Key 锁，可重复读也就是通过间隙锁、Next-Key 锁来防止幻读的。
 
 [更多](https://zhuanlan.zhihu.com/p/29150809)
+
+
 
 #### [日志](https://www.alibabacloud.com/blog/what-are-the-differences-and-functions-of-the-redo-log-undo-log-and-binlog-in-mysql_598035)与一条更新语句的执行
 
@@ -1355,6 +1576,12 @@ when to release
 
 ![image-20220615163653033](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220615163653033.png) 
 
+
+
+### ES(todo)
+
+为什么插入有性能问题
+
 ### Redis
 
 hash：元数据
@@ -1363,7 +1590,7 @@ hash：元数据
 
 ![redis应用.drawio](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/redis%E5%BA%94%E7%94%A8.drawio.png) 
 
-##### 跳跃表与红黑树
+
 
 
 
@@ -1371,9 +1598,7 @@ hash：元数据
 
 ![缓存类型](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/%E7%BC%93%E5%AD%98%E7%B1%BB%E5%9E%8B.png) 
 
-#### 与memcached的区别
 
-![image-20220607195816514](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220607195816514.png) 
 
 #### Redis 快？
 
@@ -1400,11 +1625,15 @@ hash：元数据
 
 **与很多单线程模型一样**，Redis 使用的时时间循环的机制循环处理文件事件和定时事件来完成完整的功能
 
+
+
 ------> IO reactor
 
 #### Pipeline与Lua
 
 ![image-20220609103516149](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220609103516149.png) 
+
+
 
 #### 线程模型（redis6.0前后）
 
@@ -1481,13 +1710,13 @@ RDB，AOF 和主从复制对过期过期键的处理
 >
 >**缓存击穿**：热点 key （打散）过期；**源头解决**：防止热点 key 的产生；**解决**：永不过期
 >
->**缓存穿透**：无法缓存不存在的值，直接打到数据库；**解决**：1.把无效的Key存进Redis中（设置合适的过期时间）；2.
+>**缓存穿透**：无法缓存不存在的值，直接打到数据库；**解决**：1.把无效的Key存进Redis中（设置合适的过期时间）；
 
 #### [数据一致性](https://mp.weixin.qq.com/s/4W7vmICGx6a_WX701zxgPQ)
 
 #### 高可用
 
-#### 一次限流（限次数）的尝试
+#### 一次限流（限次数）的尝试（todo）
 
 > 限流（429）
 >
@@ -1511,19 +1740,7 @@ redis-cell 漏斗
 
 ![image-20220731151931011](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220731151931011.png) 
 
-### Rabbit MQ
 
-#### 通信方式
-
-| 类型                                                         | 结构                                                         | 说明                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ["Hello World!"](https://www.rabbitmq.com/tutorials/tutorial-one-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-one.png) | 看起来是发布方直接将消息发布到queue;实际上是帮我们屏蔽了 X 而已 |
-| [Work queues](https://www.rabbitmq.com/tutorials/tutorial-two-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-two.png) |                                                              |
-| [Publish/Subscribe](https://www.rabbitmq.com/tutorials/tutorial-three-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-three.png) |                                                              |
-| [Routing](https://www.rabbitmq.com/tutorials/tutorial-four-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-four.png) |                                                              |
-| [Topics](https://www.rabbitmq.com/tutorials/tutorial-five-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-five.png) |                                                              |
-| [RPC](https://www.rabbitmq.com/tutorials/tutorial-six-python.html) | ![img](https://www.rabbitmq.com/img/tutorials/python-six.png) |                                                              |
-| [Publisher Confirms](https://www.rabbitmq.com/tutorials/tutorial-seven-java.html) |                                                              |                                                              |
 
 
 
@@ -1561,7 +1778,7 @@ redis-cell 漏斗
 >
 > **分区（partition）**：每个主题的消息是被放在不同的分区中的，**消费组**里的消费者按<u>先后顺序</u>读取分区中的不同消息
 >
-> **分区的顺序性：因为分区的存在，分区间消息的顺序是不能保证的，分区内的消息顺序性可以保证，**所以如果对顺序性有要求就在指定 topic 以外，再指定消息的 key**，**分区器**会根据消息的键生成一个散列值，将其映射到指定的分区上，保证同样的 key 打在同样的分区上；
+> **分区的顺序性：因为分区的存在，分区间消息的顺序是不能保证的，分区内的消息顺序性可以保证，**所以如果对顺序性有要求就在指定 topic 以外，再指定消息的 **key**，**分区器**会根据消息的键生成一个散列值，将其映射到指定的分区上，保证同样的 key 打在同样的分区上；
 >
 > **消费组的作用**：消费者的消费速度跟不上生产者的生产速度的话，就会导致消息的积压，消费组的作用就是对消费者进行横向拓展
 >
@@ -1716,7 +1933,11 @@ exactly once
 > - 如果短时间内没有⾜够的服务器资源进⾏扩容，没办法的办法是，将系统降级，通过关闭⼀些不重要的业务，减少发送⽅发送 的数据量，最低限度让系统还能正常运转，服务⼀些重要业务。
 > - 还有⼀种不太常⻅的情况，你通过监控发现，⽆论是发送消息的速度还是消费消息的速度和原来都没什么变化，这时候你需要检查⼀下你的消费端，是不是消费失败导致的⼀条消息反复消费这种情况⽐较多，这种情况也会拖慢整个系统的消费速度。 如果监控到消费变慢了，你需要检查你的消费实例，分析⼀下是什么原因导致消费变慢。优先检查⼀下⽇志是否有⼤量的消费错误，如果没有错误的话，可以通过打印堆栈信息，看⼀下你的消费线程是不是卡在什么地⽅不动了，⽐如触发了死锁或者卡在等待某些资源上了。
 
-### Git
+
+
+
+
+### Git（kill）
 
 #### Use case
 
@@ -1794,6 +2015,24 @@ rebase:
 
 ### Spring
 
+#### SpringBoot的启动流程
+
+SpringBoot的启动类就是一个run方法配合@SpringBootApplication注解
+
+主要靠注解实现启动流程的配置（Bean的装配）
+
+@Configuration 用于定义配置类和 Bean
+
+@ComponentScan 负责扫描并注册组件
+
+@EnableAutoConfiguration 则通过 spring.factories 加载自动配置类，根据条件注解按需装配 Bean，三者共同完成了 Spring Boot 的自动化启动和 IoC 容器构建。
+
+
+
+#### Bean生命周期和扩展点
+
+
+
 #### [@Bean 和 @Component 区别](https://stackoverflow.com/questions/10604298/spring-component-versus-bean)
 
 > @Component(可能以@Service 或者 @Controller的形式派生) 通过组件扫描（@ComponentScan）和自动依赖注入的方式创建Bean，一个类就对应一个Bean
@@ -1817,7 +2056,7 @@ rebase:
 >
 > 
 
-#### Springboot 启动过程
+#### Springboot 启动过程（重要）
 
 @Configuration
 
@@ -1879,7 +2118,7 @@ rebase:
 
 [实现方式](https://www.cnblogs.com/tuyang1129/p/12878549.html)
 
-动态代理
+动态代理（todo，mapper不需要实现类）
 
 jdk 动态代理（默认）
 
@@ -1889,7 +2128,7 @@ CGLib 动态代理
 
 ![image-20220612160513625](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220612160513625.png)
 
-#### 事务
+#### Spring事务
 
 ##### 实现方式
 
@@ -1901,6 +2140,8 @@ definition 定义传播性 回滚规则
 
 回滚规则默认 rollBackFor(RunTimeExecption)
 
+
+
 ##### 传播性 （一个事务方法调用另外一个事务方法）
 
 默认REQUIRED  并入同一个事务，同时提交或回滚
@@ -1908,6 +2149,8 @@ definition 定义传播性 回滚规则
 REQUIRES_NEW  两个事务，外面不影响里面，里吞外好，里抛外寄（外事务挂起时可能会因为表锁而造成阻塞）
 
 NESTED 嵌套（子事务），外回里回，里回外不回
+
+
 
 ##### 事务失效
 
@@ -1917,6 +2160,8 @@ NESTED 嵌套（子事务），外回里回，里回外不回
 2. 如果方法是私有的也不能被代理，事务失效（如果是private或default不报错但是会失效）
 
 3. 当然数据库引擎需要支持事务
+
+
 
 **内部调用解决**(直接获取代理类，不够优雅)
 
@@ -1949,7 +2194,7 @@ public class DemoService {
 
 
 
-### IO
+### IO(kill)
 
 #### [select/poll/epoll](https://mp.weixin.qq.com/s/Qpa0qXxuIM8jrBqDaXmVNA)
 
@@ -1957,7 +2202,9 @@ https://www.zhihu.com/question/19732473/answer/20851256
 
 [Reactor](https://xiaolincoding.com/os/8_network_system/reactor.html#%E5%8D%95-reactor-%E5%8D%95%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B)
 
-### 设计原则
+
+
+### 设计原则（kill）
 
 | 标记 | 设计模式原则名称  | 简单定义                                         |
 | :--- | :---------------- | :----------------------------------------------- |
@@ -1969,74 +2216,13 @@ https://www.zhihu.com/question/19732473/answer/20851256
 | CARP | 合成/聚合复用原则 | 尽量使用合成/聚合，而不是通过继承达到复用的目的  |
 | LOD  | 迪米特法则        | 一个软件实体应当尽可能少的与其他实体发生相互作用 |
 
-### 设计模式
-
-#### 单例模式 != Spring 单例
-
-设计模式中的单例模式指的是对于同一个类，只会创建唯一的一个对象，该类不能使用 new 关键字创建对象，因为构造器是私有的，只能通过调用一个 static 方法（通常为 getInstance）返回同一个实例
-
-Spring 中的 bean 作用域 Singleton scope 和单例模式没什么关系，只代表当前的 bean 只会被实例化一次，但是并不要求当前类只有一个对象，也不要求构造器私有。
-
-> Spring 中的作用域有 Singleton，Prototype，Request（每一个http 请求），Session
-
-那单例模式有什么应用吗
-
-
-
-写一个安全的单例模式
-
-```java
-class Foo {
-
-    // Pay attention to volatile
-    private static volatile Foo INSTANCE = null;
-
-    // TODO Add private shouting constructor
-
-    public static Foo getInstance() {
-        if (INSTANCE == null) { // Check 1 防止同步太多次
-            synchronized (Foo.class) {
-                if (INSTANCE == null) { // Check 2
-                    INSTANCE = new Foo();
-                }
-            }
-        }
-        return INSTANCE;
-    }
-}
-```
-
-
-
-#### 单例模式 vs 静态类
-
-为什么要用单例模式呢，静态类不是也可以保证只有一个“实例”吗
-
-> 原因是使用单例模式的对象就是一个普通的对象，可以作为参数传递，而且可以实现接口，比静态方法要灵活
+#### 
 
 
 
 #### aqs: 模板方法
 
 
-
-#### 观察者模式
-
-### 待总结
-
-#### servlet生命周期
-
-Servlet的生命周期一般可以用三个方法来表示：
-
-1. ​    init()：仅执行一次，负责在装载Servlet时初始化Servlet对象
-   ​    
-2. ​    service() ：核心方法，一般HttpServlet中会有get,post两种处理方式。在调用doGet和doPost方法时会构造servletRequest和servletResponse请求和响应对象作为参数。
-   ​    
-3. ​    destory()：在停止并且卸载Servlet时执行，负责释放资源  
-
-​    初始化阶段：Servlet启动，会读取配置文件中的信息，构造指定的Servlet对象，创建ServletConfig对象，将ServletConfig作为参数来调用init()方法。所以选ACD。B是在调用service方法时才构造的
-
-![image-20220616211351986](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220616211351986.png) 
 
 ### 手写
 
@@ -2219,30 +2405,56 @@ public class LRUCache {
 ![image-20220802105102915](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802105102915.png)
 
 ```java
+import java.util.Random;
+
 class Solution {
+    // 全局随机数生成器，避免重复创建
+    private final Random random = new Random();
+
     public int[] sortArray(int[] nums) {
-        return quickSort(nums, 0, nums.length - 1);
-    }
-    int[] quickSort(int[] nums, int left, int right) {
-        if(right - left < 1) return nums;
-        int partition = partition(nums, left, right);
-        quickSort(nums, left, partition - 1);
-        quickSort(nums, partition + 1, right);
+        if (nums == null || nums.length <= 1) {
+            return nums;
+        }
+        quickSort(nums, 0, nums.length - 1);
         return nums;
     }
-    int partition(int[] nums, int left, int right){
-        swap(nums, left, (int)(Math.random() * (right - left + 1)) + left );
-        int povit = left;
-        int index = povit + 1;
-        for(int i = index; i <= right; i++) {
-            if(nums[i] < nums[povit]) {
-                swap(nums, i, index++);
+
+    // 快速排序递归
+    private void quickSort(int[] nums, int left, int right) {
+        // 递归终止条件
+        if (left >= right) {
+            return;
+        }
+        // 获取分区点
+        int pivotIndex = partition(nums, left, right);
+        // 递归排序左右两部分
+        quickSort(nums, left, pivotIndex - 1);
+        quickSort(nums, pivotIndex + 1, right);
+    }
+
+    // 分区函数（随机基准）
+    private int partition(int[] nums, int left, int right) {
+        // 随机选基准，交换到 left 位置
+        int randomIdx = left + random.nextInt(right - left + 1);
+        swap(nums, left, randomIdx);
+
+        int pivot = nums[left];
+        int smallIndex = left + 1;
+
+        // 把小于 pivot 的放到左边区域
+        for (int i = smallIndex; i <= right; i++) {
+            if (nums[i] < pivot) {
+                swap(nums, i, smallIndex++);
             }
         }
-        swap(nums, povit, --index);
-        return index;
+
+        // 把基准放到最终位置
+        swap(nums, left, smallIndex - 1);
+        return smallIndex - 1;
     }
-    void swap(int[] nums, int i, int j) {
+
+    // 交换工具方法
+    private void swap(int[] nums, int i, int j) {
         int temp = nums[i];
         nums[i] = nums[j];
         nums[j] = temp;
@@ -2255,41 +2467,49 @@ class Solution {
 ```java
 class Solution {
     public int[] sortArray(int[] nums) {
+        if (nums == null || nums.length <= 1) {
+            return nums;
+        }
         mergeSort(nums, 0, nums.length - 1);
         return nums;
     }
-    private void mergeSort(int[] originArray, int left, int right) {
-        if (right > left) {
-            int mid = left + (right - left) / 2;
-            mergeSort(originArray, left, mid);
-            mergeSort(originArray, mid + 1, right);
-            merge(originArray, left, mid, right);
+
+    // 归并排序递归
+    private void mergeSort(int[] nums, int left, int right) {
+        // 递归终止条件：left == right 时只有一个元素，无需排序
+        if (left >= right) {
+            return;
         }
 
+        // 防止溢出的标准取中值方式
+        int mid = left + (right - left) / 2;
+
+        mergeSort(nums, left, mid);      // 排序左半
+        mergeSort(nums, mid + 1, right); // 排序右半
+        merge(nums, left, mid, right);   // 合并两个有序数组
     }
 
-    private void merge(int[] arr, int left, int mid, int right) {
-        int i = left;
-        int j = mid + 1;
+    // 合并两个有序区间 [left, mid] 和 [mid+1, right]
+    private void merge(int[] nums, int left, int mid, int right) {
+        int i = left;    // 左数组指针
+        int j = mid + 1; // 右数组指针
+        int k = 0;       // 临时数组指针
+
+        // 临时数组存储合并结果
         int[] temp = new int[right - left + 1];
-        int cur = 0;
+
+        // 双指针合并
         while (i <= mid && j <= right) {
-            if (arr[i] <= arr[j]) {
-                temp[cur++] = arr[i++];
-            } else {
-                temp[cur++] = arr[j++];
-            }
+            temp[k++] = nums[i] <= nums[j] ? nums[i++] : nums[j++];
         }
 
-        while (i <= mid) {
-            temp[cur++] = arr[i++];
-        }
-        while (j <= right) {
-            temp[cur++] = arr[j++];
-        }
-        cur = 0;
-        for(int k = left; k <= right; k++) {
-            arr[k] = temp[cur++];
+        // 复制剩余元素
+        while (i <= mid) temp[k++] = nums[i++];
+        while (j <= right) temp[k++] = nums[j++];
+
+        // 将临时数组复制回原数组
+        for (int m = 0; m < temp.length; m++) {
+            nums[left + m] = temp[m];
         }
     }
 }
@@ -2452,18 +2672,6 @@ public class MyBlockingQueue<E> {
 ```
 
 
-
-### 简历问答
-
-![image-20220801102113810](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220801102113810.png)
-
-![image-20220802104230485](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802104230485.png) 
-
-![image-20220802104249091](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802104249091.png)
-
-![image-20220802104348441](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802104348441.png)
-
-![image-20220802104438658](https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220802104438658.png)
 
 ### 空白
 
