@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class L200岛屿数量 {
-    private static final int[][] FOUR_DIRECTIONS = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
+    private static final int[][] FOUR_DIRECTIONS = {{ 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
 
     public int numIslands(char[][] grid) {
         int result = 0;

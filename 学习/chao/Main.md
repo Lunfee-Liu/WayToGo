@@ -1,5 +1,9 @@
 ### java基础
 
+#### Hashmap为什么有扩容问题
+
+
+
 #### JDK
 
 <img src="https://pic-lunfee.oss-cn-beijing.aliyuncs.com/picgo/image-20220913222605337.png" alt="image-20220913222605337" style="zoom:50%;" /> 
@@ -1416,6 +1420,10 @@ B+树，
 
 
 
+##### 快照创建时间
+
+![image-20260506143428201](../image/image-20260506143428201-1778049271706-1.png)
+
 ##### [Spring 对事务的参数设置](#Spring事务)
 
 Spring **会为每个连接创建一个会话**，在会话里使用自定义的隔离级别，传播方式，只有在缺省（default）的情况下才选择数据库的默认方式。
@@ -2030,6 +2038,47 @@ SpringBoot的启动类就是一个run方法配合@SpringBootApplication注解
 
 
 #### Bean生命周期和扩展点
+
+生命周期：
+
+**实例化**（Spring会调用类的构造方法，创建对象）
+
+**属性populate**（依赖注入 @Autowired /set 方法）
+
+**执行 Aware 接口**（感知 Spring 自身容器信息）
+
+**前置处理**（初始化前）
+
+执行**初始化方法**
+
+- 钩子函数@PostConstruct
+- InitializingBean#afterPropertiesSet()
+
+**后置处理**（初始化后）
+
+**Bean 就绪使用**
+
+**执行销毁方法**
+
+
+
+扩展点
+
+1. BeanPostProcessor（最强大扩展点）
+   初始化前：postProcessBeforeInitialization()
+   初始化后：postProcessAfterInitialization()
+   作用：对所有 Bean 做AOP 代理、包装、增强、属性修改
+   Spring AOP、事务代理 全靠它实现
+
+2. 初始化时
+
+   使用@PostConstruct 做一些前置校验
+
+3. 感知容器Aware
+
+   获取 Spring 容器本身（BeanFactory / 上下文）
+
+
 
 
 
